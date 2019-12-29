@@ -11,7 +11,7 @@
         android:theme="@style/AppTheme">
         <activity android:name=".GameActivity">
             <intent-filter>
-                <action android:name=".GameActivity" />
+                <action android:name="android.intent.action.VIEW" />
 
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>

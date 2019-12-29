@@ -6,53 +6,76 @@
     android:layout_height="match_parent"
     tools:context=".GameActivity">
 
-    <ListView
-        android:id="@+id/horizontal_list"
-        android:layout_width="413dp"
-        android:layout_height="0dp"
-        android:layout_marginTop="43dp"
-        android:layout_marginBottom="364dp"
-        app:layout_constraintBottom_toTopOf="@+id/checkBtn"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <ListView
-        android:id="@+id/vertical_list"
-        android:layout_width="109dp"
-        android:layout_height="339dp"
-        android:layout_marginEnd="1dp"
-        android:layout_marginRight="1dp"
-        android:layout_marginBottom="187dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/tableLayout"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/horizontal_list" />
-
-    <TableLayout
-        android:id="@+id/tableLayout"
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/constraintLayout"
         android:layout_width="0dp"
-        android:layout_height="396dp"
-        android:layout_marginEnd="3dp"
-        android:layout_marginRight="3dp"
-        android:layout_marginBottom="1dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_height="0dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/checkBtn"
-        app:layout_constraintTop_toBottomOf="@+id/horizontal_list" />
-
-    <Button
-        android:id="@+id/checkBtn"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="13dp"
-        android:layout_marginLeft="13dp"
-        android:layout_marginEnd="14dp"
-        android:layout_marginRight="14dp"
-        android:layout_marginBottom="71dp"
-        android:text="@string/check"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/tableLayout"
+        app:layout_constraintHeight_percent="0.65"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/horizontal_list" />
+        app:layout_constraintTop_toTopOf="parent">
 
+        <LinearLayout
+            android:id="@+id/vertical_list"
+            android:layout_width="0dp"
+            android:layout_height="185dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginRight="8dp"
+            android:orientation="vertical"
+            app:layout_constraintBottom_toBottomOf="@+id/inputs_grid"
+            app:layout_constraintEnd_toStartOf="@+id/inputs_grid"
+            app:layout_constraintHorizontal_bias="1.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/inputs_grid"
+            app:layout_constraintVertical_bias="1.0"
+            app:layout_constraintWidth_percent="0.2" />
+
+        <LinearLayout
+            android:id="@+id/horizontal_list"
+            android:layout_width="0dp"
+            android:layout_height="85dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginRight="8dp"
+            android:layout_marginBottom="8dp"
+            android:orientation="horizontal"
+            app:layout_constraintBottom_toTopOf="@+id/inputs_grid"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintWidth_percent="0.5" />
+
+        <LinearLayout
+            android:id="@+id/inputs_grid"
+            android:layout_width="0dp"
+            android:layout_height="185dp"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginBottom="8dp"
+            android:orientation="vertical"
+            android:padding="0dp"
+            app:layout_constraintBottom_toTopOf="@+id/check_button"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintWidth_percent="0.5" />
+
+        <Button
+            android:id="@+id/check_button"
+            android:layout_width="0dp"
+            android:layout_height="50dp"
+            android:layout_marginBottom="8dp"
+            android:background="@drawable/button"
+            android:text="@string/check"
+            app:layout_constraintWidth_percent="0.3"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintVertical_bias="1.0" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>

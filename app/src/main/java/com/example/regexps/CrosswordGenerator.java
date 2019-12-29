@@ -7,11 +7,11 @@ class CrosswordGenerator {
     private final Random random = new Random();
     private final String alphabet = "abcdefghijklmnopqrsyuvwxyzABCDEFGHIJKLMNOPQRSYUVWXYZ0123456789";
 
-    private int width = 3;
-    private int height = 3;
-    private String[] crossword = new String[height];
-    private String[] reCrosswordHorizontal = new String[height];
-    private String[] reCrosswordVertical = new String[width];
+    private int width;
+    private int height;
+    private String[] crossword;
+    private String[] reCrosswordHorizontal;
+    private String[] reCrosswordVertical;
 
     private StringBuilder reg = new StringBuilder();
     private int curLength = 0;
@@ -98,16 +98,20 @@ class CrosswordGenerator {
     }
 
     void createCrossword() {
+        this.crossword = new String[this.height];
         for (int i = 0; i < this.height; i++) this.crossword[i] = generateWord(this.width);
         fillReCrossword();
     }
 
     private void fillReCrossword() {
-        for (int i = 0; i < this.height; i++) this.reCrosswordHorizontal[i] = generateRe(this.crossword[i]);
+        this.reCrosswordVertical = new String[this.height];
+        for (int i = 0; i < this.height; i++) this.reCrosswordVertical[i] = generateRe(this.crossword[i]);
+
+        this.reCrosswordHorizontal = new String[this.width];
         for (int i = 0; i < this.width; i++){
             final StringBuilder str = new StringBuilder();
             for (int j = 0; j < this.height; j++) str.append(this.crossword[j].charAt(i));
-            this.reCrosswordVertical[i] = generateRe(str.toString());
+            this.reCrosswordHorizontal[i] = generateRe(str.toString());
         }
     }
 
@@ -118,4 +122,9 @@ class CrosswordGenerator {
         }
         return str.toString();
     }
+
+    int getWidth() { return this.width; }
+
+    int getHeight() { return this.height; }
+
 }

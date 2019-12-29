@@ -27,10 +27,10 @@ public class MainActivity extends AppCompatActivity {
                         CrosswordGenerator crossword = new CrosswordGenerator(3, 3);
                         crossword.createCrossword();
                         Intent game = new Intent(MainActivity.this, GameActivity.class);
-                        game.putExtra("reCrosswordHorizontal", crossword.getCrosswordHorizontal());
-                        game.putExtra("reCrosswordVertical", crossword.getCrosswordVertical());
-                        game.putExtra("height", 3);
-                        game.putExtra("width", 3);
+                        game.putExtra("CrosswordHorizontal", crossword.getCrosswordHorizontal());
+                        game.putExtra("CrosswordVertical", crossword.getCrosswordVertical());
+                        game.putExtra("height", crossword.getHeight());
+                        game.putExtra("width", crossword.getWidth());
                         startActivity(game);
                     }
                 }
