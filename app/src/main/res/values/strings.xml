@@ -3,4 +3,8 @@
     <string name="start_new_game">Start new game</string>
     <string name="this_is_the_game_activity">This is the game activity</string>
     <string name="check">Check</string>
+    <string name="easy">Easy</string>
+    <string name="medium">Medium</string>
+    <string name="close">Close</string>
+    <string name="hard">Hard</string>
 </resources>

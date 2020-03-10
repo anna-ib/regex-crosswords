@@ -1,13 +1,18 @@
 package com.example.regexps;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.constraintlayout.widget.ConstraintLayout;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.text.InputFilter;
 import android.text.InputType;
 import android.view.Gravity;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -20,12 +25,12 @@ import android.widget.Toast;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class GameActivity extends AppCompatActivity {
+public class GameActivity extends AppCompatActivity{
 
-    private String[] reCrosswordHorizontal;
-    private String[] reCrosswordVertical;
-    private int height;
-    private int width;
+    private String[] reCrosswordHorizontal, reCrosswordVertical;
+    private int height, width;
+    SwipeFragment swipeFragment;
+    InputFragment inputFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,7 +42,10 @@ public class GameActivity extends AppCompatActivity {
         this.reCrosswordVertical = game.getStringArrayExtra("CrosswordVertical");
         this.height = game.getIntExtra("height", 3);
         this.width = game.getIntExtra("width", 3);
+        swipeFragment = new SwipeFragment();
+        inputFragment = new InputFragment();
 
+        addListenersOnBackground();
         addListenerOnBtn();
         displayGame();
     }
@@ -62,7 +70,9 @@ public class GameActivity extends AppCompatActivity {
         for (int i = 0; i < this.width; i++) {
             LinearLayout layout = new LinearLayout(this);
             TextView textView = new TextView(this);
-            textView.setMaxLines(1);
+            //textView.setMaxLines(1);
+            layout.setId(i + this.width*this.height);
+
             textView.setText(reCrosswordHorizontal[i]);
             textView.setRotation(90);
             textView.setGravity(Gravity.CENTER_VERTICAL | Gravity.END);
@@ -74,7 +84,10 @@ public class GameActivity extends AppCompatActivity {
         for (int i = 0; i < this.height; i++) {
             LinearLayout layout = new LinearLayout(this);
             TextView textView = new TextView(this);
-            textView.setMaxLines(1);
+            //textView.setMaxLines(1);
+            layout.setId(i + this.width * this.height + this.width);
+            layout.setPadding(0, 0, 8, 0);
+
             textView.setText(reCrosswordVertical[i]);
             textView.setGravity(Gravity.CENTER_VERTICAL | Gravity.END);
             verticalList.addView(layout, layoutParams);
@@ -115,21 +128,144 @@ public class GameActivity extends AppCompatActivity {
     }
 
     private void addListenersOnInputs () {
+        final Intent focusIntent = new Intent(GameActivity.this, View.OnFocusChangeListener.class);
+        focusIntent.putExtra("width", this.width);
+        focusIntent.putExtra("height", this.height);
+
         for (int i = 0; i < this.width * this.height; i++) {
             final EditText input = findViewById(i);
+
+            Bundle bundle = new Bundle();
+            bundle.putInt("inputId", input.getId());
+            bundle.putString("verticalRegexp", this.reCrosswordVertical[i / this.width]);
+            bundle.putString("horizontalRegexp", this.reCrosswordHorizontal[i % this.width]);
+            final Intent longClickIntent = new Intent(GameActivity.this, View.OnLongClickListener.class);
+            longClickIntent.putExtra("bundle", bundle);
+
             input.setOnFocusChangeListener(
                     new View.OnFocusChangeListener() {
+                        int height = focusIntent.getIntExtra("height", 3);
+                        int width = focusIntent.getIntExtra("width", 3);
+                        int inputWidth = (input.getId()) % this.width;
+                        int inputHeight = (input.getId()) / this.width;
                         @Override
                         public void onFocusChange(View v, boolean hasFocus) {
-                            if (hasFocus) input.setBackgroundResource(R.drawable.active_input);
-                            else input.setBackgroundResource(R.drawable.input);
+                            if (hasFocus) {
+                                LinearLayout regexp = findViewById(this.height*this.width + inputWidth);
+                                regexp.setBackgroundColor(0xFFD2DAE2);
+                                regexp = findViewById(this.height*this.width + this.width + inputHeight);
+                                regexp.setBackgroundColor(0xFFD2DAE2);
+                                for (int i = 0; i < this.height; i++) {
+                                    EditText textInput = findViewById(i * this.width + inputWidth);
+                                    textInput.setBackgroundResource(R.drawable.semi_active_input);
+                                }
+                                for (int i = 0; i < this.width; i++) {
+                                    EditText textInput = findViewById(i + inputHeight * this.width);
+                                    textInput.setBackgroundResource(R.drawable.semi_active_input);
+                                }
+                                input.setBackgroundResource(R.drawable.active_input);
+                            }
+                            else {
+                                LinearLayout regexp = findViewById(this.height*this.width + inputWidth);
+                                regexp.setBackgroundColor(0x00000000);
+                                regexp = findViewById(this.height*this.width + this.width + inputHeight);
+                                regexp.setBackgroundColor(0x00000000);
+                                for (int i = 0; i < this.height; i++) {
+                                    EditText textInput = findViewById(i * this.width + inputWidth);
+                                    textInput.setBackgroundResource(R.drawable.input);
+                                }
+                                for (int i = 0; i < this.width; i++) {
+                                    EditText textInput = findViewById(i + inputHeight * this.width);
+                                    textInput.setBackgroundResource(R.drawable.input);
+                                }
+                                input.setBackgroundResource(R.drawable.input);
+                            }
+                        }
+                    }
+            );
+
+            input.setOnLongClickListener(
+                    new View.OnLongClickListener() {
+                        public boolean onLongClick(View view) {
+                            if (getSupportFragmentManager().findFragmentByTag("verticalSwipe") == null &&
+                                    getSupportFragmentManager().findFragmentByTag("horizontalSwipe") == null &&
+                                    getSupportFragmentManager().findFragmentByTag("inputFragment") == null) {
+                                inputFragment.setArguments(longClickIntent.getBundleExtra("bundle"));
+                                FragmentManager fragmentManager = getSupportFragmentManager();
+                                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                                fragmentTransaction.add(android.R.id.content, inputFragment, "inputFragment").commit();
+                                fragmentTransaction.addToBackStack("inputFragment");
+                            }
+                            return true;
                         }
                     }
             );
         }
     }
 
-    private void check () {
+    @SuppressLint("ClickableViewAccessibility")
+    private void addListenersOnBackground() {
+        final Bundle bundle = new Bundle();
+        bundle.putStringArray("horizontalList", this.reCrosswordHorizontal);
+        bundle.putStringArray("verticalList", this.reCrosswordVertical);
+
+        ConstraintLayout layout = findViewById(R.id.game_layout);
+        layout.setOnTouchListener(new OnSwipeTouchListener(GameActivity.this) {
+
+            public boolean onSwipeTop() {
+                if (getSupportFragmentManager().findFragmentByTag("verticalSwipe") != null) {
+                    getSupportFragmentManager().beginTransaction().remove(swipeFragment).commit();
+                    getSupportFragmentManager().popBackStack();
+                }
+                return true;
+            }
+            public boolean onSwipeRight() {
+                if (getSupportFragmentManager().findFragmentByTag("verticalSwipe") == null &&
+                        getSupportFragmentManager().findFragmentByTag("horizontalSwipe") == null &&
+                        getSupportFragmentManager().findFragmentByTag("inputFragment") == null) {
+                    swipeFragment.setArguments(bundle);
+                    FragmentManager fragmentManager = getSupportFragmentManager();
+                    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                    fragmentTransaction.add(android.R.id.content, swipeFragment, "horizontalSwipe").commit();
+                    fragmentTransaction.addToBackStack("horizontalSwipe");
+                }
+                return true;
+            }
+            public boolean onSwipeLeft() {
+                if (getSupportFragmentManager().findFragmentByTag("horizontalSwipe") != null) {
+                    getSupportFragmentManager().beginTransaction().remove(swipeFragment).commit();
+                    getSupportFragmentManager().popBackStack();
+                }
+                return true;
+            }
+            public boolean onSwipeBottom() {
+                if (getSupportFragmentManager().findFragmentByTag("verticalSwipe") == null &&
+                        getSupportFragmentManager().findFragmentByTag("horizontalSwipe") == null &&
+                        getSupportFragmentManager().findFragmentByTag("inputFragment") == null) {
+                    swipeFragment.setArguments(bundle);
+                    FragmentManager fragmentManager = getSupportFragmentManager();
+                    FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+                    fragmentTransaction.add(android.R.id.content, swipeFragment, "verticalSwipe").commit();
+                    fragmentTransaction.addToBackStack("verticalSwipe");
+                }
+                return true;
+            }
+            public boolean onTouch(View v, MotionEvent event) {
+                if (getSupportFragmentManager().findFragmentByTag("inputFragment") != null) {
+                    getSupportFragmentManager().beginTransaction().remove(inputFragment).commit();
+                    getSupportFragmentManager().popBackStack();
+                }
+                else if (getSupportFragmentManager().findFragmentByTag("verticalSwipe") != null ||
+                        getSupportFragmentManager().findFragmentByTag("horizontalSwipe") != null) {
+                    getSupportFragmentManager().beginTransaction().remove(swipeFragment).commit();
+                    getSupportFragmentManager().popBackStack();
+                }
+                return gestureDetector.onTouchEvent(event);
+            }
+        });
+    }
+
+    private void check() {
         int count = 0;
         for (int i = 0; i < this.height; i++) {
             StringBuilder str = new StringBuilder();

@@ -4,7 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    tools:context=".MainActivity"
+    app:layout_behavior="android.support.design.widget.BottomSheetBehavior">
 
     <Button
         android:id="@+id/button_start"

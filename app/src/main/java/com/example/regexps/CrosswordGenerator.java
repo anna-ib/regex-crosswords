@@ -100,11 +100,11 @@ class CrosswordGenerator {
 
              while(minCharIndex == maxCharIndex || maxCharIndex - minCharIndex == 1) {
                  if (index == 0) {
-                     minCharIndex = 0;
+                     minCharIndex = -1;
                      maxCharIndex = charIndexes[0];
                  } else if (index == str.length()) {
                      minCharIndex = charIndexes[index - 1];
-                     maxCharIndex = 61;
+                     maxCharIndex = 62;
                  } else {
                      minCharIndex = charIndexes[index - 1];
                      maxCharIndex = charIndexes[index];
@@ -120,7 +120,7 @@ class CrosswordGenerator {
             minCharIndex = charIndexes[0];
             maxCharIndex = charIndexes[str.length() - 1];
             minCharIndex = minCharIndex - random.nextInt(minCharIndex + 1);
-            maxCharIndex = maxCharIndex + random.nextInt(62 - maxCharIndex + 1);
+            maxCharIndex = maxCharIndex + random.nextInt(62 - maxCharIndex);
         }
 
         this.reg.append(this.alphabet.charAt(minCharIndex));
