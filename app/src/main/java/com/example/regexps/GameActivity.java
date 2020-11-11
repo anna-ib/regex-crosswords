@@ -1,23 +1,22 @@
 package com.example.regexps;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.fragment.app.FragmentManager;
-import androidx.fragment.app.FragmentTransaction;
+import androidx.core.content.ContextCompat;
 
-import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.Point;
 import android.graphics.drawable.GradientDrawable;
 import android.os.Bundle;
 import android.text.InputFilter;
 import android.text.InputType;
+import android.view.Display;
 import android.view.Gravity;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -29,102 +28,164 @@ public class GameActivity extends AppCompatActivity{
 
     private String[] reCrosswordHorizontal, reCrosswordVertical;
     private int height, width;
-    SwipeFragment swipeFragment;
-    InputFragment inputFragment;
+    private Timer timer;
+    private int mistakesNum = 0, maxMistakesNum = 3;
+    // SwipeFragment swipeFragment;
+    // InputFragment inputFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_game);
+        setContentView(R.layout.activity_game1);
 
         Intent game = getIntent();
         this.reCrosswordHorizontal = game.getStringArrayExtra("CrosswordHorizontal");
         this.reCrosswordVertical = game.getStringArrayExtra("CrosswordVertical");
         this.height = game.getIntExtra("height", 3);
         this.width = game.getIntExtra("width", 3);
-        swipeFragment = new SwipeFragment();
-        inputFragment = new InputFragment();
+        timer = new Timer ((TextView) findViewById(R.id.timer));
+        // swipeFragment = new SwipeFragment();
+        // inputFragment = new InputFragment();
 
-        addListenersOnBackground();
-        addListenerOnBtn();
+        //addListenersOnBackground();
+        addListenerOnBtns();
         displayGame();
+        timer.startTimer();
     }
 
+    // TODO: Set Listeners on background
+    // TODO: Colors
+    // TODO: Create "EndOfGame" activity
+
+
     private void displayGame () {
+        /* IDs:
+        * inputs            |                      0 <= id < width * height
+        * horizontal regexes|         width * height <= id < width * height + width
+        * vertical regexes  | width * height + width <= id < width * height + width + height
+        */
+
+        // Setting border for table of inputs
         LinearLayout table = findViewById(R.id.inputs_grid);
         GradientDrawable border = new GradientDrawable();
-        border.setStroke(1, 0xFF6C7578);
+        border.setStroke(1, ContextCompat.getColor(getBaseContext(), R.color.border));
         table.setBackground(border);
 
-        LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(
+        // Setting the size of the input table depending on the window size
+        Display display = getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        try {
+            display.getRealSize(size); // TODO: API 17 current min is 16
+        }
+        catch (NoSuchMethodError err) {
+            display.getSize(size);
+        }
+        double curSideWidth = size.x * 0.8 / this.width;
+        double curSideHeight = size.y * 0.5 / this.height;
+        int inputSideSize = (int)Math.floor(Math.min(curSideWidth, curSideHeight));
+
+        ViewGroup.LayoutParams tableParams = table.getLayoutParams();
+        tableParams.height = inputSideSize * this.height;
+        tableParams.width = inputSideSize * this.width;
+        table.setLayoutParams(tableParams);
+
+        // TODO
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 1f);
-        FrameLayout.LayoutParams textParams = new  FrameLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.MATCH_PARENT);
 
-        InputFilter[] filters = { new InputFilter.LengthFilter(1) };
-
+        // Adds regex text to horizontal column
         LinearLayout horizontalList = findViewById(R.id.horizontal_list);
-        for (int i = 0; i < this.width; i++) {
-            LinearLayout layout = new LinearLayout(this);
-            TextView textView = new TextView(this);
-            //textView.setMaxLines(1);
-            layout.setId(i + this.width*this.height);
+        fillWithRegexes(horizontalList, this.reCrosswordHorizontal, this.width * this.height, params);
 
-            textView.setText(reCrosswordHorizontal[i]);
-            textView.setRotation(90);
-            textView.setGravity(Gravity.CENTER_VERTICAL | Gravity.END);
-            horizontalList.addView(layout, layoutParams);
-            layout.addView(textView, textParams);
-        }
-
+        // Adds regex text to vertical column
         LinearLayout verticalList = findViewById(R.id.vertical_list);
-        for (int i = 0; i < this.height; i++) {
+        fillWithRegexes(verticalList, this.reCrosswordVertical, this.width * this.height + this.width, params);
+
+        fillWithInputs(table, params);
+        addListenersOnInputs();
+        addListenersOnRegexes();
+
+
+    }
+
+    private void fillWithRegexes (LinearLayout list, String[] regExes, int baseId, LinearLayout.LayoutParams params) {
+        /* TODO */
+        if (regExes == null) {
+            /* TODO: Logs and error */
+            return ;
+        }
+        for (int i = 0; i < regExes.length; i++) {
             LinearLayout layout = new LinearLayout(this);
             TextView textView = new TextView(this);
-            //textView.setMaxLines(1);
-            layout.setId(i + this.width * this.height + this.width);
-            layout.setPadding(0, 0, 8, 0);
+            layout.setId(i + baseId);
+            layout.setFocusable(true);
+            layout.setFocusableInTouchMode(true);
+            layout.setClickable(true);
 
-            textView.setText(reCrosswordVertical[i]);
-            textView.setGravity(Gravity.CENTER_VERTICAL | Gravity.END);
-            verticalList.addView(layout, layoutParams);
-            layout.addView(textView, textParams);
+            textView.setText(regExes[i]);
+            textView.setGravity(Gravity.CENTER);
+            list.addView(layout, params);
+            layout.addView(textView, params);
         }
+    }
+
+    private void fillWithInputs (LinearLayout table, LinearLayout.LayoutParams params) {
+        // TODO
+        InputFilter[] filters = { new InputFilter.LengthFilter(1) };
 
         for (int i = 0; i < this.height; i++) {
             LinearLayout row = new LinearLayout(this);
-            table.addView(row, layoutParams);
+            table.addView(row, params);
 
             for (int j = 0; j < this.width; j++) {
                 LinearLayout layout = new LinearLayout(this);
-                row.addView(layout, layoutParams);
+                row.addView(layout, params);
                 EditText textInput = new EditText(this);
 
-                textInput.setId(i*this.width + j);
+                textInput.setId(i * this.width + j);
                 textInput.setBackgroundResource(R.drawable.input);
                 textInput.setFilters(filters);
                 textInput.setGravity(Gravity.CENTER);
                 textInput.setCursorVisible(false);
                 textInput.setInputType(InputType.TYPE_TEXT_FLAG_NO_SUGGESTIONS);
+                textInput.setShowSoftInputOnFocus(false); // TODO: API 21 current min is 16
 
-                layout.addView(textInput, textParams);
+                layout.addView(textInput, params);
             }
         }
-
-        addListenersOnInputs();
     }
 
-    private void addListenerOnBtn () {
+    private void addListenerOnBtns () {
         Button checkBtn = findViewById(R.id.check_button);
         checkBtn.setOnClickListener(
                 new View.OnClickListener() {
                     @Override
-                    public void onClick(View v) { check(); }
+                    public void onClick(View v) {
+                        checkCrossword();
+                    }
                 }
         );
+        Button pauseBtn = findViewById(R.id.pause_button);
+        pauseBtn.setOnClickListener(
+                new View.OnClickListener() {
+                    boolean isPaused = false;
+
+                    @Override
+                    public void onClick(View v) {
+                        if (isPaused) {
+                            isPaused = false;
+                            timer.continueTimer();
+                        }
+                        else {
+                            isPaused = true;
+                            timer.pauseTimer();
+                        }
+                    }
+                }
+        );
+
     }
 
     private void addListenersOnInputs () {
@@ -135,49 +196,30 @@ public class GameActivity extends AppCompatActivity{
         for (int i = 0; i < this.width * this.height; i++) {
             final EditText input = findViewById(i);
 
-            Bundle bundle = new Bundle();
-            bundle.putInt("inputId", input.getId());
-            bundle.putString("verticalRegexp", this.reCrosswordVertical[i / this.width]);
-            bundle.putString("horizontalRegexp", this.reCrosswordHorizontal[i % this.width]);
-            final Intent longClickIntent = new Intent(GameActivity.this, View.OnLongClickListener.class);
-            longClickIntent.putExtra("bundle", bundle);
-
             input.setOnFocusChangeListener(
                     new View.OnFocusChangeListener() {
                         int height = focusIntent.getIntExtra("height", 3);
                         int width = focusIntent.getIntExtra("width", 3);
-                        int inputWidth = (input.getId()) % this.width;
-                        int inputHeight = (input.getId()) / this.width;
+                        int inputWidth = (input.getId()) % width;
+                        int inputHeight = (input.getId()) / width;
                         @Override
                         public void onFocusChange(View v, boolean hasFocus) {
+                            // Changes the colors of the corresponding regexes and input fields
+
+                            // Regexes in "Vertical" and "Horizontal" columns
+                            LinearLayout verticalRegex = findViewById(height * width + inputWidth);
+                            LinearLayout horizontalRegex = findViewById(height * width + width + inputHeight);
+
                             if (hasFocus) {
-                                LinearLayout regexp = findViewById(this.height*this.width + inputWidth);
-                                regexp.setBackgroundColor(0xFFD2DAE2);
-                                regexp = findViewById(this.height*this.width + this.width + inputHeight);
-                                regexp.setBackgroundColor(0xFFD2DAE2);
-                                for (int i = 0; i < this.height; i++) {
-                                    EditText textInput = findViewById(i * this.width + inputWidth);
-                                    textInput.setBackgroundResource(R.drawable.semi_active_input);
-                                }
-                                for (int i = 0; i < this.width; i++) {
-                                    EditText textInput = findViewById(i + inputHeight * this.width);
-                                    textInput.setBackgroundResource(R.drawable.semi_active_input);
-                                }
+                                verticalRegex.setBackgroundColor(ContextCompat.getColor(getBaseContext(), R.color.semiActive));
+                                horizontalRegex.setBackgroundColor(ContextCompat.getColor(getBaseContext(), R.color.semiActive));
+                                setBkgOnSemiActiveInputs(R.drawable.semi_active_input, inputHeight, inputWidth);
                                 input.setBackgroundResource(R.drawable.active_input);
                             }
                             else {
-                                LinearLayout regexp = findViewById(this.height*this.width + inputWidth);
-                                regexp.setBackgroundColor(0x00000000);
-                                regexp = findViewById(this.height*this.width + this.width + inputHeight);
-                                regexp.setBackgroundColor(0x00000000);
-                                for (int i = 0; i < this.height; i++) {
-                                    EditText textInput = findViewById(i * this.width + inputWidth);
-                                    textInput.setBackgroundResource(R.drawable.input);
-                                }
-                                for (int i = 0; i < this.width; i++) {
-                                    EditText textInput = findViewById(i + inputHeight * this.width);
-                                    textInput.setBackgroundResource(R.drawable.input);
-                                }
+                                verticalRegex.setBackgroundColor(ContextCompat.getColor(getBaseContext(), R.color.transparent));
+                                horizontalRegex.setBackgroundColor(ContextCompat.getColor(getBaseContext(), R.color.transparent));
+                                setBkgOnSemiActiveInputs(R.drawable.input, inputHeight, inputWidth);
                                 input.setBackgroundResource(R.drawable.input);
                             }
                         }
@@ -187,15 +229,7 @@ public class GameActivity extends AppCompatActivity{
             input.setOnLongClickListener(
                     new View.OnLongClickListener() {
                         public boolean onLongClick(View view) {
-                            if (getSupportFragmentManager().findFragmentByTag("verticalSwipe") == null &&
-                                    getSupportFragmentManager().findFragmentByTag("horizontalSwipe") == null &&
-                                    getSupportFragmentManager().findFragmentByTag("inputFragment") == null) {
-                                inputFragment.setArguments(longClickIntent.getBundleExtra("bundle"));
-                                FragmentManager fragmentManager = getSupportFragmentManager();
-                                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-                                fragmentTransaction.add(android.R.id.content, inputFragment, "inputFragment").commit();
-                                fragmentTransaction.addToBackStack("inputFragment");
-                            }
+                            showSoftKeyboard(input);
                             return true;
                         }
                     }
@@ -203,7 +237,64 @@ public class GameActivity extends AppCompatActivity{
         }
     }
 
-    @SuppressLint("ClickableViewAccessibility")
+    private void addListenersOnRegexes () {
+        int baseId = this.height * this.height;
+        final Intent focusIntent = new Intent(GameActivity.this, View.OnClickListener.class);
+        focusIntent.putExtra("width", this.width);
+        focusIntent.putExtra("height", this.height);
+        for (int i = baseId; i < baseId + this.height + this.width; i++) {
+            final LinearLayout regex = findViewById(i);
+
+            regex.setOnFocusChangeListener(
+                    new View.OnFocusChangeListener() {
+                        int height = focusIntent.getIntExtra("height", 3);
+                        int width = focusIntent.getIntExtra("width", 3);
+                        int baseId = height * width;
+                        int regexId = regex.getId();
+                        Integer inputsHeight = regexId - baseId < width ? null : regexId - baseId - width;
+                        Integer inputsWidth = regexId - baseId < width ? regexId - baseId : null;
+                        public void onFocusChange (View v, boolean hasFocus) {
+                            if (hasFocus) {
+                                regex.setBackgroundColor(ContextCompat.getColor(getBaseContext(), R.color.semiActive));
+                                setBkgOnSemiActiveInputs(R.drawable.semi_active_input, inputsHeight, inputsWidth);
+                            }
+                            else {
+                                regex.setBackgroundColor(ContextCompat.getColor(getBaseContext(), R.color.transparent));
+                                setBkgOnSemiActiveInputs(R.drawable.input, inputsHeight, inputsWidth);
+                            }
+                        }
+                    }
+            );
+        }
+
+    }
+
+    private void setBkgOnSemiActiveInputs (int resource, Integer inputHeight, Integer inputWidth) {
+        /*
+        Changes the background color to the "resource" color at the input field
+        located at the width "inputWidth" and the height "inputHeight"
+         */
+        if (inputWidth != null) {
+            for (int i = 0; i < this.height; i++) {
+                EditText textInput = findViewById(i * this.width + inputWidth);
+                textInput.setBackgroundResource(resource);
+            }
+        }
+        if (inputHeight != null) {
+            for (int i = 0; i < this.width; i++) {
+                EditText textInput = findViewById(inputHeight * this.width + i);
+                textInput.setBackgroundResource(resource);
+            }
+        }
+    }
+
+    private void showSoftKeyboard (View view) {
+        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+        assert imm != null;
+        imm.showSoftInput(view, 0);
+    }
+
+   /*
     private void addListenersOnBackground() {
         final Bundle bundle = new Bundle();
         bundle.putStringArray("horizontalList", this.reCrosswordHorizontal);
@@ -264,9 +355,10 @@ public class GameActivity extends AppCompatActivity{
             }
         });
     }
+    */
 
-    private void check() {
-        int count = 0;
+    private void checkCrossword () {
+        boolean endOfGame;
         for (int i = 0; i < this.height; i++) {
             StringBuilder str = new StringBuilder();
             for (int j = 0; j < this.width; j++) {
@@ -276,12 +368,14 @@ public class GameActivity extends AppCompatActivity{
             final Pattern r = Pattern.compile(reCrosswordVertical[i]);
             final Matcher m = r.matcher(str.toString());
             if (!m.matches()) {
+                endOfGame = incrMistakesNum();
                 Toast.makeText(
                         GameActivity.this,
                         "Not ok, height: " + (i + 1),
                         Toast.LENGTH_LONG
                 ).show();
-                count += 1;
+                if (endOfGame) System.out.println("END");
+                return;
             }
         }
 
@@ -294,21 +388,28 @@ public class GameActivity extends AppCompatActivity{
             final Pattern r = Pattern.compile(reCrosswordHorizontal[i]);
             final Matcher m = r.matcher(str.toString());
             if (!m.matches()) {
+                endOfGame = incrMistakesNum();
                 Toast.makeText(
                         GameActivity.this,
                         "Not ok, width: " + (i + 1),
                         Toast.LENGTH_LONG
                 ).show();
-                count += 1;
+                if (endOfGame) System.out.println("END");
+                return;
             }
         }
+        Toast.makeText(
+                GameActivity.this,
+                "Ok!!!!!",
+                Toast.LENGTH_LONG
+        ).show();
 
-        if (count == 0) {
-            Toast.makeText(
-                    GameActivity.this,
-                    "Ok!!!!!",
-                    Toast.LENGTH_LONG
-            ).show();
-        }
+    }
+
+    private boolean incrMistakesNum () {
+        this.mistakesNum += 1;
+        TextView mistakesNumText = findViewById(R.id.mistakes);
+        mistakesNumText.setText(String.format("Mistakes: %d/%d", this.mistakesNum, this.maxMistakesNum));
+        return this.mistakesNum >= this.maxMistakesNum;
     }
 }

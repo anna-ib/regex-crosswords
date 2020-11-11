@@ -51,12 +51,12 @@ public class MainActivity extends AppCompatActivity {
         FrameLayout bottomSheet = bottomSelectComplexity.findViewById(com.google.android.material.R.id.design_bottom_sheet);
         if (bottomSheet != null) bottomSheet.setBackground(null);
 
-        LinearLayout eazy = sheetView.findViewById(R.id.bottom_sheet_eazy);
+        LinearLayout easy = sheetView.findViewById(R.id.bottom_sheet_easy);
         LinearLayout medium = sheetView.findViewById(R.id.bottom_sheet_medium);
         LinearLayout hard = sheetView.findViewById(R.id.bottom_sheet_hard);
         LinearLayout cancel = sheetView.findViewById(R.id.bottom_sheet_cancel);
 
-        eazy.setOnClickListener(new View.OnClickListener() {
+        easy.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 bottomSelectComplexity.dismiss();

@@ -3,4 +3,9 @@
     <color name="colorPrimary">#008577</color>
     <color name="colorPrimaryDark">#00574B</color>
     <color name="colorAccent">#D81B60</color>
+    <color name="semiActive">#D2DAE2</color>
+    <color name="active">#BBCFE2</color>
+    <color name="border">#9CA3AB</color>
+    <color name="button">#E2DAD2</color>
+    <color name="transparent">#00000000</color>
 </resources>

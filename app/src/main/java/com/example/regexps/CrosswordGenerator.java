@@ -16,6 +16,11 @@ class CrosswordGenerator {
     private StringBuilder reg = new StringBuilder();
     private int curLength = 0;
 
+    CrosswordGenerator(int width, int height) {
+        if (width > 0) this.width = width;
+        if (height > 0) this.height = height;
+    }
+
     private interface Generator {
         void generate(String str);
     }
@@ -28,11 +33,6 @@ class CrosswordGenerator {
             new Generator() { public void generate(String str) { generateIntervalAndQuantifier(str); }},
             new Generator() { public void generate(String str) { generateAlternation(str); }}
     };
-
-    CrosswordGenerator(int width, int height) {
-        if (width > 0) this.width = width;
-        if (height > 0) this.height = height;
-    }
 
     private String generateRe(String str) {
         this.reg = new StringBuilder();
