@@ -2,11 +2,12 @@
 Two-dimensional regular expressions crossword game written in Java.
 
 ## Screenshots
-
-<img src="img/main_menu.png" width="200" alt="Main menu"/>
-<img src="img/difficulty.png" width="200" alt="Сhoice of game difficulty"/>
-<img src="img/game_beginning.png" width="200" alt="Beginning of the game"/>
-<img src="img/game_end.png" width="200" alt="End of the game"/>
+<p>
+  <img src="img/main_menu.png" width="200" alt="Main menu"/>
+  <img src="img/difficulty.png" width="200" alt="Сhoice of game difficulty"/>
+  <img src="img/game_beginning.png" width="200" alt="Beginning of the game"/>
+  <img src="img/game_end.png" width="200" alt="End of the game"/>
+</p>
 
 ## Features
 List of features ready:
